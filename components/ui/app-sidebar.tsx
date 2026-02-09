@@ -310,7 +310,11 @@ export default function AppSidebar({...props}: React.ComponentProps<typeof Sideb
 
     return(
         <>
-        <Sidebar collapsible="icon" {...props}>
+        <Sidebar
+          collapsible="icon"
+          className={isMailPanelOpen ? "hidden md:flex" : "flex"}
+          {...props}
+        >
             <SidebarHeader>
              {/*  Company Category */}
              <TeamSwitcher teams={data.teams}/>
@@ -386,7 +390,7 @@ export default function AppSidebar({...props}: React.ComponentProps<typeof Sideb
            {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
       {isMailPanelOpen && (
-      <Sidebar collapsible="none" className="hidden md:flex w-80">
+      <Sidebar collapsible="none" className="flex w-full md:w-80">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between ">
             <div className="text-foreground text-base font-medium">
