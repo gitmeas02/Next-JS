@@ -1,8 +1,8 @@
 "use client";
-import Loading from "../loading";
 import { useState } from "react";
-import useUserStore, { UserItem } from "../stores/useUserStore";
+import useUserStore, { UserItem } from "../../stores/useUserStore";
 import { useRouter } from "next/navigation";
+import Loading from "@/app/loading";
 export default function Userpage() {
   const [isLoading, setIsLoading] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);

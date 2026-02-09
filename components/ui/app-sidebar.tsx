@@ -388,15 +388,15 @@ export default function AppSidebar({...props}: React.ComponentProps<typeof Sideb
       {isMailPanelOpen && (
       <Sidebar collapsible="none" className="hidden md:flex w-80">
         <SidebarHeader className="gap-3.5 border-b p-4">
-          <div className="flex w-full items-center justify-between">
+          <div className="flex w-full items-center justify-between ">
             <div className="text-foreground text-base font-medium">
               {activeItem?.title}
             </div>
             <button 
               onClick={() => setIsMailPanelOpen(false)}
-              className="hover:bg-sidebar-accent rounded-md p-1"
+              className="hover:bg-sidebar-accent rounded-md px-2 pt-0"
             >
-              <span className="text-xl">×</span>
+              <span className="text-2xl">×</span>
             </button>
           </div>
           <div className="flex w-full items-center justify-between">
