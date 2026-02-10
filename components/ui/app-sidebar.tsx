@@ -322,7 +322,7 @@ export default function AppSidebar({...props}: React.ComponentProps<typeof Sideb
           
             <SidebarContent>
             {/* First 5 items: Inbox, Drafts, Sent, Junk, Trash */}
-            <SidebarGroup>
+            <SidebarGroup className=" h-screen bg-amber-400">
                     <SidebarGroupLabel>Mail</SidebarGroupLabel>
                     <SidebarGroupContent>
                         <SidebarMenu>
@@ -390,7 +390,7 @@ export default function AppSidebar({...props}: React.ComponentProps<typeof Sideb
            {/* This is the second sidebar */}
       {/* We disable collapsible and let it fill remaining space */}
       {isMailPanelOpen && (
-      <Sidebar collapsible="none" className="flex w-full md:w-80">
+      <Sidebar collapsible="none" className="flex w-full md:w-80 bg-green-500 h-screen overflow-y-auto">
         <SidebarHeader className="gap-3.5 border-b p-4">
           <div className="flex w-full items-center justify-between ">
             <div className="text-foreground text-base font-medium">
