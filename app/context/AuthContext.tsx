@@ -44,22 +44,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.login(email, password);
       
-      if (response.error) {
-        return { success: false, error: response.error };
+      if (response.error || !response.data) {
+        return { success: false, error: response.error || 'Login failed' };
       }
 
-      if (response.data?.token) {
-        // Save token to storage
-        AuthManager.saveToken(response.data.token);
-        
-        // Update user state
-        const user = AuthManager.getCurrentUser();
-        setUser(user);
-        
-        return { success: true };
-      }
-
-      return { success: false, error: 'Invalid response from server' };
+      // Save tokens and user data
+      AuthManager.saveToken(response.data.data.accessToken);
+      AuthManager.saveRefreshToken(response.data.data.refreshToken);
+      AuthManager.saveUser({
+        id: response.data.data.user.id,
+        email: response.data.data.user.email,
+        name: response.data.data.user.username
+      });
+      
+      // Update user state
+      const user = AuthManager.getCurrentUser();
+      setUser(user);
+      
+      return { success: true };
     } catch (error) {
       return {
         success: false,
@@ -72,22 +74,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiClient.register(name, email, password);
       
-      if (response.error) {
-        return { success: false, error: response.error };
+      if (response.error || !response.data) {
+        return { success: false, error: response.error || 'Registration failed' };
       }
 
-      if (response.data?.token) {
-        // Save token to storage
-        AuthManager.saveToken(response.data.token);
-        
-        // Update user state
-        const user = AuthManager.getCurrentUser();
-        setUser(user);
-        
-        return { success: true };
-      }
-
-      return { success: false, error: 'Invalid response from server' };
+      // Registration successful - don't auto-login, redirect to signin
+      return { success: true };
     } catch (error) {
       return {
         success: false,

@@ -31,7 +31,17 @@ class APiClient {
         headers,
         credentials: "include", // Send cookies
       });
-      const data = await response.json().catch(() => null);
+      
+      // Log response for debugging
+      console.log(`API ${endpoint}:`, response.status, response.statusText);
+      
+      const data = await response.json().catch((err) => {
+        console.error(`JSON parse error for ${endpoint}:`, err);
+        return null;
+      });
+      
+      console.log(`API ${endpoint} data:`, data);
+      
       if (!response.ok) {
         return {
           error: data?.message || data?.error || "An error occurred",
@@ -64,16 +74,50 @@ class APiClient {
   }
   // Auth endpoints
   async login(email: string, password: string) {
-    return this.request<{ token: string; user: any }>("/auth/login", {
+    return this.request<{ 
+      success: boolean; 
+      message: string; 
+      data: { 
+        accessToken: string; 
+        refreshToken: string; 
+        user: { 
+          id: string; 
+          username: string; 
+          email: string; 
+          avatar: string | null 
+        } 
+      } 
+    }>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
   }
 
   async register(name: string, email: string, password: string) {
-    return this.request<{ token: string; user: any }>("/auth/register", {
+    return this.request<{ 
+      success: boolean; 
+      message: string; 
+      data: { 
+        id: string; 
+        name: string; 
+        email: string 
+      } 
+    }>("/api/auth/register", {
       method: "POST",
       body: JSON.stringify({ name, email, password }),
+    });
+  }
+
+  async refreshToken(refreshToken: string) {
+    return this.request<{ 
+      success: boolean; 
+      message: string; 
+      data: { 
+        accessToken: string 
+      } 
+    }>("/api/auth/refresh", {
+      method: "POST",
+      body: JSON.stringify({ refreshToken }),
     });
   }
 

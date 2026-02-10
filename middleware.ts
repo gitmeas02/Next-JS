@@ -1,4 +1,4 @@
-// middleware.ts (place in ROOT directory, same level as app folder)
+// middleware.ts - Authentication middleware for Next.js
 
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
@@ -7,36 +7,30 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // Get token from cookie
-  const token = request.cookies.get('token')?.value;
+  const token = request.cookies.get('token')?.value || request.cookies.get('accessToken')?.value;
   const isAuthenticated = !!token;
 
-  // Define protected routes (dashboard pages that require authentication)
-  const protectedRoutes = ['/products', '/users', '/dashboard'];
-  
   // Define auth routes (login, register - should redirect away if already authenticated)
   const authRoutes = ['/signin', '/register'];
 
-  // Check if current path is a protected route
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  );
-  
   // Check if current path is an auth route
   const isAuthRoute = authRoutes.some(route => 
     pathname.startsWith(route)
   );
 
-  // Redirect to signin if accessing protected route without authentication
-  if (isProtectedRoute && !isAuthenticated) {
-    const url = new URL('/signin', request.url);
-    // Save the attempted URL to redirect back after login
-    url.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(url);
-  }
-
   // Redirect to dashboard if accessing auth routes while already authenticated
   if (isAuthRoute && isAuthenticated) {
     return NextResponse.redirect(new URL('/products', request.url));
+  }
+
+  // Redirect to signin if not authenticated and not already on auth route
+  if (!isAuthenticated && !isAuthRoute) {
+    const url = new URL('/signin', request.url);
+    // Save the attempted URL to redirect back after login (if not root)
+    if (pathname !== '/') {
+      url.searchParams.set('redirect', pathname);
+    }
+    return NextResponse.redirect(url);
   }
 
   // Allow the request to proceed

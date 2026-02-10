@@ -1,3 +1,5 @@
+"use client"
+
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,13 +10,69 @@ import {
   FieldSeparator,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { apiClient } from "@/lib/api-client"
+import { AuthManager } from "@/lib/auth"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
+
+  useEffect(() => {
+    if (searchParams.get("registered") === "true") {
+      setSuccessMessage("Account created successfully! Please log in.")
+    }
+  }, [searchParams])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setSuccessMessage("")
+    setLoading(true)
+
+    try {
+      const response = await apiClient.login(email, password)
+
+      if (response.error || !response.data) {
+        setError(response.data?.message || response.error || "Login failed")
+        return
+      }
+
+      // Save access token
+      AuthManager.saveToken(response.data.data.accessToken)
+      
+      // Save refresh token
+      AuthManager.saveRefreshToken(response.data.data.refreshToken)
+      
+      // Save user data
+      AuthManager.saveUser({
+        id: response.data.data.user.id,
+        email: response.data.data.user.email,
+        name: response.data.data.user.username
+      })
+
+      // Redirect to original destination or dashboard
+      const redirectTo = searchParams.get("redirect") || "/products"
+      router.push(redirectTo)
+      router.refresh()
+    } catch (err) {
+      setError("An unexpected error occurred")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <form className={cn("flex flex-col gap-6", className)} {...props}>
+    <form className={cn("flex flex-col gap-6", className)} onSubmit={handleSubmit} {...props}>
       <FieldGroup>
         <div className="flex flex-col items-center gap-1 text-center">
           <h1 className="text-2xl font-bold">Login to your account</h1>
@@ -22,9 +80,26 @@ export function LoginForm({
             Enter your email below to login to your account
           </p>
         </div>
+        {successMessage && (
+          <div className="rounded-md bg-green-50 p-3 text-sm text-green-600">
+            {successMessage}
+          </div>
+        )}
+        {error && (
+          <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+            {error}
+          </div>
+        )}
         <Field>
           <FieldLabel htmlFor="email">Email</FieldLabel>
-          <Input id="email" type="email" placeholder="m@example.com" required />
+          <Input 
+            id="email" 
+            type="email" 
+            placeholder="m@example.com" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required 
+          />
         </Field>
         <Field>
           <div className="flex items-center">
@@ -36,10 +111,18 @@ export function LoginForm({
               Forgot your password?
             </a>
           </div>
-          <Input id="password" type="password" required />
+          <Input 
+            id="password" 
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required 
+          />
         </Field>
         <Field>
-          <Button type="submit">Login</Button>
+          <Button type="submit" disabled={loading}>
+            {loading ? "Logging in..." : "Login"}
+          </Button>
         </Field>
         <FieldSeparator>Or continue with</FieldSeparator>
         <Field>
@@ -54,7 +137,7 @@ export function LoginForm({
           </Button>
           <FieldDescription className="text-center">
             Don&apos;t have an account?{" "}
-            <a href="#" className="underline underline-offset-4">
+            <a href="/register" className="underline underline-offset-4">
               Sign up
             </a>
           </FieldDescription>
